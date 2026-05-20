@@ -1,9 +1,9 @@
 // 音の高さ（Hz）を計算する（Windows 版 PitchEstimator と同じ考え方）
 
 var PitchEstimator = (function () {
-  var ANALYSIS_WINDOW_SAMPLES = 4096;         // 一度に解析するサンプル数
-  var SILENCE_ENERGY_THRESHOLD = 0.005;       // 無音とみなすしきい値
-  var AUTOCORR_MIN_RATIO = 0.08;              // ピッチとして認める相関の下限
+  var ANALYSIS_WINDOW_SAMPLES = 8192;         // 一度に解析するサンプル数（長いほど Hz が安定）
+  var SILENCE_ENERGY_THRESHOLD = 0.0025;      // 無音とみなすしきい値（小さいほど小声を拾う）
+  var AUTOCORR_MIN_RATIO = 0.05;              // ピッチとして認める相関の下限（小さいほど寛容）
 
 
   // ======================================================================================

@@ -5,13 +5,14 @@
 
   // 定数 --------------------------------------------------------------------------
   var SAMPLE_RATE = 44100;                    // マイクのサンプリングレート
-  var SMOOTH_COEFF = 0.85;                    // Hz の移動平均係数（大きいほど滑らか）
-  var MAX_SAMPLES_HOLD = 12288;               // 音のデータをためる最大数
-  var MAX_OCTAVE_HISTORY = 450;               // 折れ線に保持する点数
+  var SMOOTH_COEFF = 0.72;                    // Hz の移動平均係数（小さいほど変化に追従）
+  var MAX_SAMPLES_HOLD = 16384;               // 音のデータをためる最大数（解析窓8192に合わせて拡大）
+  var MAX_OCTAVE_HISTORY = 550;               // 折れ線に保持する点数
   var HP_ALPHA = 0.995;                       // 低い音を取り除く係数
   var MEDIAN_WINDOW = 3;                      // 飛び値を消す窓の幅
   var LEARN_FRAMES_COUNT = 38;                // 周囲の音を学習するフレーム数
-  var NOISE_GATE_FACTOR = 4.0;                // 雑音しきい値の倍率
+  var NOISE_GATE_FACTOR = 2.5;                // 雑音しきい値の倍率（小さいほど声を拾いやすい）
+  var AUDIO_BUFFER_SIZE = 2048;               // マイク1回分のサンプル数（小さいほど更新が速い）
 
   // マイク・音声処理 ----------------------------------------------------------------
   var audioContext = null;                    // 音声処理の本体
@@ -229,7 +230,7 @@
         sampleRate: SAMPLE_RATE
       });
 
-      var bufferSize = 4096;
+      var bufferSize = AUDIO_BUFFER_SIZE;
       sourceNode = audioContext.createMediaStreamSource(mediaStream);
       scriptNode = audioContext.createScriptProcessor(bufferSize, 1, 1);
 

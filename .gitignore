@@ -8,3 +8,4 @@ Desktop.ini
 
 # バックアップコピー（リポジトリに含めない場合）
 *_backup*/
+.backup_pre_pitch_tuning/
