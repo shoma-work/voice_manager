@@ -17,10 +17,14 @@
         </p>
       </div>
       <div class="col-12 col-md-auto app-actions d-grid d-sm-flex gap-2">
-        <button type="button" id="btnSetBaseline" class="btn btn-outline-primary btn-sm app-touch-btn">
+        <button type="button" id="btnSetBaseline" class="btn btn-outline-primary btn-sm app-touch-btn app-action-tooltip"
+          data-bs-title="現在拾っている声のhzに基準hzを合わせます"
+          title="現在拾っている声のhzに基準hzを合わせます">
           今の声で自動取得
         </button>
-        <button type="button" id="btnLearnNoise" class="btn btn-outline-secondary btn-sm app-touch-btn">
+        <button type="button" id="btnLearnNoise" class="btn btn-outline-secondary btn-sm app-touch-btn app-action-tooltip"
+          data-bs-title="現在拾っている雑音を学習しノイズを除去します"
+          title="現在拾っている雑音を学習しノイズを除去します">
           周囲の音を学習
         </button>
       </div>

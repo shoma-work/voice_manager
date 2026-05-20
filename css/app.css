@@ -60,6 +60,11 @@ body {
   word-break: break-word;
 }
 
+.app-action-tooltip-popup .tooltip-inner {
+  max-width: 240px;
+  text-align: left;
+}
+
 
 /* ======================================================================================
    タッチ向け（スマホ・タブレット）

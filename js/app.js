@@ -586,6 +586,57 @@
 
 
   // ======================================================================================
+  //ボタンの説明（PC はマウス、スマホは指のタッチ）
+  // ======================================================================================
+  function initActionButtonTooltips() {
+    var nodes = document.querySelectorAll(".app-action-tooltip");
+    var i;
+    for (i = 0; i < nodes.length; i++) {
+      (function (el) {
+        var tip = new bootstrap.Tooltip(el, {
+          placement: "top",
+          trigger: "manual",
+          container: "body",
+          customClass: "app-action-tooltip-popup"
+        });
+        var hideTimerId = null;
+
+        function showTip() {
+          if (hideTimerId) {
+            clearTimeout(hideTimerId);
+            hideTimerId = null;
+          }
+          tip.show();
+        }
+
+        function hideTipSoon(delayMs) {
+          if (hideTimerId) {
+            clearTimeout(hideTimerId);
+          }
+          hideTimerId = setTimeout(function () {
+            tip.hide();
+            hideTimerId = null;
+          }, delayMs);
+        }
+
+        el.addEventListener("mouseenter", showTip);
+        el.addEventListener("mouseleave", function () {
+          hideTipSoon(0);
+        });
+        el.addEventListener("focus", showTip);
+        el.addEventListener("blur", function () {
+          hideTipSoon(0);
+        });
+        el.addEventListener("touchstart", showTip, { passive: true });
+        el.addEventListener("touchend", function () {
+          hideTipSoon(1800);
+        }, { passive: true });
+      })(nodes[i]);
+    }
+  }
+
+
+  // ======================================================================================
   //ページ読み込み完了
   // ======================================================================================
   $(function () {
@@ -605,6 +656,8 @@
     if (demoOk) {
       uiTimerId = setInterval(uiTimerTick, 33);
     }
+
+    initActionButtonTooltips();
 
     $(window).on("resize orientationchange", function () {
       // 向き変更直後はレイアウトが安定するまで少し待つ----
