@@ -338,10 +338,17 @@
 
 
   // ======================================================================================
+  //グラフ領域のサイズを合わせる（向き変更・ウィンドウ変更時だけ）
+  // ======================================================================================
+  function resizeGraphLayout() {
+    PitchGraph.resizeCanvasToDisplay(canvas);
+  }
+
+
+  // ======================================================================================
   //グラフを描き直す
   // ======================================================================================
   function redrawGraph() {
-    PitchGraph.resizeCanvasToDisplay(canvas);
     var hasLine = PitchGraph.draw(
       canvas,
       octaveHistory,
@@ -601,12 +608,18 @@
 
     $(window).on("resize orientationchange", function () {
       // 向き変更直後はレイアウトが安定するまで少し待つ----
-      setTimeout(redrawGraph, 100);
+      setTimeout(function () {
+        resizeGraphLayout();
+        redrawGraph();
+      }, 100);
     });
 
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", function () {
-        setTimeout(redrawGraph, 50);
+        setTimeout(function () {
+          resizeGraphLayout();
+          redrawGraph();
+        }, 50);
       });
     }
 
@@ -669,6 +682,7 @@
       stopCapture();
     });
 
+    resizeGraphLayout();
     redrawGraph();
   });
 })(jQuery);

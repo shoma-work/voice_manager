@@ -134,36 +134,34 @@ var PitchGraph = (function () {
   // ======================================================================================
   //画面サイズに合わせて Canvas の大きさを調整
   // ======================================================================================
-  function measureGraphHeight(canvas, wrapRect) {
-    var h = Math.floor(wrapRect.height);
-    if (h >= 120) return h;
+  function measureGraphHeight(wrap) {
+    if (window.matchMedia("(min-width: 993px)").matches) {
+      return 320;
+    }
 
-    // flex レイアウト前など高さが取れないときは残り画面から計算----
-    var top = wrapRect.top;
-    var bottomPad = 12;
+    var cssH = Math.floor(wrap.clientHeight);
+    if (cssH >= 120) {
+      return cssH;
+    }
+    
+    // CSS 高さがまだ取れないときだけ画面残りから計算----
+    var top = wrap.getBoundingClientRect().top;
     var vh = window.innerHeight || document.documentElement.clientHeight || 600;
-    h = Math.floor(vh - top - bottomPad);
-    return Math.max(140, h);
+    var available = Math.floor(vh - top - 16);
+    return Math.max(140, Math.min(320, available));
   }
 
   function resizeCanvasToDisplay(canvas) {
     var wrap = canvas.parentElement;
     if (!wrap) return;
 
-    var rect = wrap.getBoundingClientRect();
-    var w = Math.max(200, Math.floor(rect.width));
-    var h = measureGraphHeight(canvas, rect);
-
-    // PC 幅では従来どおり 320px 上限寄りに保つ--------------------
-    if (window.matchMedia("(min-width: 993px)").matches) {
-      h = 320;
-    }
+    var w = Math.max(200, Math.floor(wrap.clientWidth));
+    var h = measureGraphHeight(wrap);
 
     canvas.width = w;
     canvas.height = h;
     canvas.style.width = "100%";
-    canvas.style.height = h + "px";
-    wrap.style.minHeight = h + "px";
+    canvas.style.height = "100%";
   }
 
 
