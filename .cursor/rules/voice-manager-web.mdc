@@ -1,0 +1,12 @@
+---
+description: voice_manager Web版（HTML/JS + jQuery + Bootstrap）
+globs: **/*.{html,htm,css,js}
+alwaysApply: true
+---
+
+# voice_manager Web 版
+
+- **HTML** + **JavaScript** + **jQuery** + **Bootstrap**（フレームワークは使わない）
+- 仕様は Windows 版（`../WindowsApp2test/WindowsApp2teest/`）に合わせる
+- 設定キーは snake_case（`last_device_name`, `baseline_hz`, `noise_cancel`, `target_octave`, `target_enabled`）
+- コメントは短い日本語
