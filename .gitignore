@@ -9,3 +9,5 @@ Desktop.ini
 # バックアップコピー（リポジトリに含めない場合）
 *_backup*/
 .backup_pre_pitch_tuning/
+.backup_pre_graph_redesign/
+.backup_pre_cafe_noise/

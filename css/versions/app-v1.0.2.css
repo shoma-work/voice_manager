@@ -1,27 +1,25 @@
 /* ======================================================================================
-   UI design v1.1.0 — 2カラムレイアウト + v1.0.2 色味
-   戻すとき: css/versions/app-v1.0.2.css または app-v1.0.1.css を参照
+   UI design v1.0.2 — 色味調整（ピーチ・ミント・ラベンダー）
+   戻すとき: このファイルを css/app.css にコピー
    ====================================================================================== */
 
 :root {
-  --app-bg-top: #f4fbff;
-  --app-bg-mid: #eef9fe;
-  --app-bg-bottom: #e8f7fd;
-  --app-surface: #feffff;
-  --app-surface-soft: #f8fdff;
-  --app-text: #3d4f63;
-  --app-text-muted: #7a8fa3;
-  --app-border: rgba(120, 170, 210, 0.22);
-  --app-shadow: 0 8px 22px rgba(80, 150, 200, 0.1);
-  --app-shadow-sm: 0 3px 12px rgba(80, 150, 200, 0.08);
+  --app-bg-top: #fff8f0;
+  --app-bg-mid: #f6f1fc;
+  --app-bg-bottom: #effaf5;
+  --app-surface: #fffefb;
+  --app-surface-soft: #fffcf7;
+  --app-text: #4a5868;
+  --app-text-muted: #8a97a8;
+  --app-border: rgba(160, 175, 195, 0.2);
+  --app-shadow: 0 8px 22px rgba(150, 130, 110, 0.09);
+  --app-shadow-sm: 0 3px 12px rgba(150, 130, 110, 0.07);
   --app-radius: 1rem;
   --app-radius-sm: 0.75rem;
   --app-radius-pill: 999px;
-  --app-gradient-start: #5eb8ff;
-  --app-gradient-end: #67e8f9;
-  --app-primary: #5eb8ff;
-  --app-primary-dark: #38a8f5;
-  --app-primary-soft: #e8f6ff;
+  --app-primary: #6ec0bc;
+  --app-primary-dark: #4fa9a4;
+  --app-primary-soft: #e8f7f6;
   --app-accent: #ffad80;
   --app-accent-soft: #fff3ea;
   --app-success: #72c9a8;
@@ -30,7 +28,7 @@
   --app-warning-soft: #fff8e8;
   --app-danger: #f18f9d;
   --app-danger-soft: #ffeef1;
-  --app-tab-active: #feffff;
+  --app-tab-active: #fffefb;
   --app-font: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "BIZ UDPGothic", "Meiryo UI", sans-serif;
 }
 
@@ -52,7 +50,7 @@ body {
 }
 
 .app-root {
-  max-width: 1040px;
+  max-width: 900px;
   margin-left: auto;
   margin-right: auto;
   padding-top: max(0.75rem, env(safe-area-inset-top));
@@ -61,122 +59,25 @@ body {
   padding-left: max(0.75rem, env(safe-area-inset-left));
 }
 
-.app-panel {
-  margin-bottom: 0.5rem;
-}
-
-.app-section-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: linear-gradient(120deg, var(--app-gradient-start) 0%, var(--app-gradient-end) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  margin: 0;
-}
-
-.app-monitor-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem;
-  align-items: start;
-}
-
-.app-monitor-side {
-  display: flex;
-  flex-direction: column;
-}
-
-.app-monitor-main {
-  min-width: 0;
-}
-
-.app-monitor-main .app-graph {
-  min-height: 240px;
-}
-
-.app-game-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem;
-  align-items: start;
-}
-
-.app-game-side {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  min-width: 0;
-}
-
-.app-game-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.app-game-prompt-card .game-prompt-display {
-  min-height: 3.5rem;
-  padding: 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-}
-
-.app-game-visual {
-  min-width: 0;
-}
-
-.app-game-visual .app-graph {
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-sm);
-  overflow: hidden;
-  background: #fff;
-  min-height: 220px;
-}
-
-.app-game-options-card,
-.app-game-actions-card {
-  background: var(--app-surface-soft);
-}
-
 .app-brand {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 0.85rem;
-  padding: 0.75rem 1rem 0.65rem;
-  background: rgba(255, 255, 255, 0.78);
+  padding: 0.65rem 1rem;
+  background: rgba(255, 255, 255, 0.72);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius);
   box-shadow: var(--app-shadow-sm);
   backdrop-filter: blur(8px);
-  overflow: hidden;
-}
-
-.app-brand::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--app-gradient-start) 0%, var(--app-gradient-end) 100%);
 }
 
 .app-brand-title {
   font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  background: linear-gradient(120deg, var(--app-gradient-start) 0%, var(--app-gradient-end) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--app-text);
   margin: 0;
 }
 
@@ -238,9 +139,9 @@ body {
 
 .app-mode-tabs .nav-link.active,
 .game-inner-tabs .nav-link.active {
-  color: #1a6fa8;
-  background: linear-gradient(135deg, rgba(94, 184, 255, 0.14) 0%, rgba(103, 232, 249, 0.18) 100%);
-  border-color: rgba(94, 184, 255, 0.35);
+  color: var(--app-primary-dark);
+  background: var(--app-tab-active);
+  border-color: var(--app-border);
   box-shadow: var(--app-shadow-sm);
 }
 
@@ -286,9 +187,8 @@ body {
 .app-pitch {
   word-break: break-word;
   font-weight: 700;
-  color: #1a6fa8;
-  background: linear-gradient(135deg, rgba(94, 184, 255, 0.12) 0%, rgba(103, 232, 249, 0.16) 100%);
-  border: 1px solid rgba(94, 184, 255, 0.22);
+  color: var(--app-primary-dark);
+  background: var(--app-primary-soft);
   border-radius: var(--app-radius-sm);
   padding: 0.55rem 0.75rem;
 }
@@ -310,7 +210,7 @@ body {
 .form-control:focus,
 .form-select:focus {
   border-color: var(--app-primary);
-  box-shadow: 0 0 0 0.2rem rgba(94, 184, 255, 0.22);
+  box-shadow: 0 0 0 0.2rem rgba(110, 192, 188, 0.22);
 }
 
 .col-form-label {
@@ -325,26 +225,26 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--app-gradient-start) 0%, var(--app-gradient-end) 100%);
+  background: linear-gradient(135deg, var(--app-primary) 0%, var(--app-primary-dark) 100%);
   border-color: var(--app-primary-dark);
-  box-shadow: 0 4px 14px rgba(56, 168, 245, 0.32);
+  box-shadow: 0 4px 12px rgba(79, 169, 164, 0.28);
 }
 
 .btn-primary:hover,
 .btn-primary:focus {
-  background: linear-gradient(135deg, #74c4ff 0%, #7eedf8 100%);
+  background: linear-gradient(135deg, #7ececa 0%, var(--app-primary) 100%);
   border-color: var(--app-primary);
 }
 
 .btn-outline-primary {
-  color: #1a6fa8;
-  border-color: rgba(94, 184, 255, 0.55);
+  color: var(--app-primary-dark);
+  border-color: rgba(91, 156, 255, 0.55);
   background: var(--app-primary-soft);
 }
 
 .btn-outline-primary:hover {
-  background: linear-gradient(135deg, var(--app-gradient-start) 0%, var(--app-gradient-end) 100%);
-  border-color: var(--app-primary-dark);
+  background: var(--app-primary);
+  border-color: var(--app-primary);
   color: #fff;
 }
 
@@ -413,9 +313,9 @@ body {
 }
 
 .game-session-running {
-  background: linear-gradient(135deg, rgba(94, 184, 255, 0.2) 0%, rgba(103, 232, 249, 0.28) 100%);
-  color: #1a6fa8;
-  border: 1px solid rgba(94, 184, 255, 0.4);
+  background: var(--app-primary-soft);
+  color: var(--app-primary-dark);
+  border: 1px solid rgba(110, 192, 188, 0.35);
   animation: game-badge-pulse 1.2s ease-in-out infinite;
 }
 
@@ -427,20 +327,20 @@ body {
 #gamePlayPanel {
   border: 2px solid transparent;
   border-radius: var(--app-radius);
-  padding: 0;
-  background: transparent;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.35);
 }
 
-#gamePlayPanel.game-session-countdown .app-game-visual {
+#gamePlayPanel.game-session-countdown {
   border-color: rgba(245, 200, 106, 0.65);
   background: var(--app-warning-soft);
   box-shadow: 0 0 0 4px rgba(245, 200, 106, 0.15);
 }
 
-#gamePlayPanel.game-session-running .app-game-visual {
-  border: 2px solid rgba(94, 184, 255, 0.55);
-  background: linear-gradient(180deg, rgba(94, 184, 255, 0.06) 0%, rgba(103, 232, 249, 0.1) 100%);
-  box-shadow: 0 0 0 4px rgba(94, 184, 255, 0.12);
+#gamePlayPanel.game-session-running {
+  border-color: rgba(110, 192, 188, 0.55);
+  background: var(--app-primary-soft);
+  box-shadow: 0 0 0 4px rgba(110, 192, 188, 0.12);
 }
 
 .game-prompt-display {
@@ -534,10 +434,7 @@ body {
 }
 
 .game-timer-active {
-  background: linear-gradient(120deg, var(--app-gradient-start) 0%, var(--app-gradient-end) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--app-primary-dark);
   font-size: 1.35rem;
 }
 
@@ -572,8 +469,8 @@ body {
 }
 
 .game-rank-badge[data-rank="A"] {
-  background: linear-gradient(145deg, #e8f6ff 0%, #b8ecfa 100%);
-  color: #1a6fa8;
+  background: linear-gradient(145deg, #e8f7f6 0%, #b8e8e4 100%);
+  color: var(--app-primary-dark);
 }
 
 .game-rank-badge[data-rank="B"] {
@@ -703,23 +600,19 @@ body {
     padding: 0.45rem 0.65rem;
   }
 
-  .app-monitor-layout {
-    grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
-    gap: 0.5rem;
+  .app-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 0.75rem;
+    row-gap: 0.35rem;
   }
 
-  .app-game-layout {
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
-    gap: 0.5rem;
+  .app-controls .app-field-row {
+    margin-bottom: 0 !important;
   }
 
-  .app-monitor-side {
-    padding: 0.5rem !important;
-  }
-
-  .app-game-visual,
-  .app-game-side .app-card {
-    padding: 0.5rem !important;
+  .app-controls .app-target-row {
+    grid-column: 1 / -1;
   }
 
   .app-pitch {
@@ -772,46 +665,16 @@ body {
 
 
 /* ======================================================================================
-   PC（2カラム）
+   PC（従来どおり）
    ====================================================================================== */
-@media (min-width: 768px) {
-  .app-monitor-layout {
-    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
-    gap: 1rem;
-  }
-
-  .app-game-layout {
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
-    gap: 1rem;
-  }
-
-  .app-monitor-main .app-graph {
-    min-height: 360px;
-    height: 360px;
-  }
-
-  .app-game-visual .app-graph {
-    min-height: 280px;
-    height: min(42vh, 300px);
-  }
-}
-
 @media (min-width: 993px) {
-  .app-monitor-main .app-graph {
-    min-height: 380px;
-    height: 380px;
+  .app-graph {
+    min-height: 320px;
+    height: 320px;
   }
 
-  #picPitch {
-    height: 380px;
-  }
-
-  .app-game-visual .app-graph {
-    min-height: 300px;
-    height: 300px;
-  }
-
+  #picPitch,
   #picPitchGame {
-    height: 300px;
+    height: 320px;
   }
 }

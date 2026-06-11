@@ -8,7 +8,14 @@ var AppSettings = (function () {
     baseline_hz: "baseline_hz",                 // 基準の Hz
     noise_cancel: "noise_cancel",               // デモ版の累計使用秒（2進数文字列）
     target_octave: "target_octave",             // 目標オクターブ
-    target_enabled: "target_enabled"            // 目標線を表示するか
+    target_enabled: "target_enabled",           // 目標線を表示するか
+    reading_prompts: "reading_prompts",         // 朗読お題の一覧
+    reading_game_scores: "reading_game_scores", // 朗読チャレンジのベスト記録
+    reading_score_history: "reading_score_history", // 点数の履歴
+    reading_prompt_references: "reading_prompt_references", // お題ごとの模範波形
+    reading_score_from_record: "reading_score_from_record",  // 模範で採点するか
+    reading_compare_takes: "reading_compare_takes",           // 比較用録音のピッチ
+    reading_record_on_challenge: "reading_record_on_challenge" // チャレンジ時に録音するか
   };
 
 
@@ -159,6 +166,121 @@ var AppSettings = (function () {
     saveTargetEnabled: function (enabled) {
       var o = {};
       o[keys.target_enabled] = enabled ? "true" : "false";
+      mergeAndSave(o);
+    },
+
+    // --------------------------------------------------
+    // 朗読お題
+    // --------------------------------------------------
+    loadReadingPrompts: function () {
+      var d = loadAll();
+      var raw = d[keys.reading_prompts];
+      if (!raw) return null;
+      if (!Array.isArray(raw)) return null;
+      return raw;
+    },
+
+    saveReadingPrompts: function (prompts) {
+      var o = {};
+      o[keys.reading_prompts] = prompts || [];
+      mergeAndSave(o);
+    },
+
+    // --------------------------------------------------
+    // 朗読チャレンジのベスト記録
+    // --------------------------------------------------
+    loadReadingGameScores: function () {
+      var d = loadAll();
+      var raw = d[keys.reading_game_scores];
+      if (!raw || typeof raw !== "object") return {};
+      return raw;
+    },
+
+    saveReadingGameScores: function (scores) {
+      var o = {};
+      o[keys.reading_game_scores] = scores || {};
+      mergeAndSave(o);
+    },
+
+    // --------------------------------------------------
+    // 点数の履歴
+    // --------------------------------------------------
+    loadReadingScoreHistory: function () {
+      var d = loadAll();
+      var raw = d[keys.reading_score_history];
+      if (!Array.isArray(raw)) return [];
+      return raw;
+    },
+
+    saveReadingScoreHistory: function (history) {
+      var o = {};
+      o[keys.reading_score_history] = history || [];
+      mergeAndSave(o);
+    },
+
+    // --------------------------------------------------
+    // お題ごとの模範波形
+    // --------------------------------------------------
+    loadReadingPromptReferences: function () {
+      var d = loadAll();
+      var raw = d[keys.reading_prompt_references];
+      if (!raw || typeof raw !== "object") return {};
+      return raw;
+    },
+
+    saveReadingPromptReferences: function (references) {
+      var o = {};
+      o[keys.reading_prompt_references] = references || {};
+      mergeAndSave(o);
+    },
+
+    // --------------------------------------------------
+    // 模範で採点するか
+    // --------------------------------------------------
+    loadReadingScoreFromRecord: function () {
+      var d = loadAll();
+      if (d[keys.reading_score_from_record] === undefined) return false;
+      var raw = String(d[keys.reading_score_from_record]).trim().toLowerCase();
+      if (raw === "true" || raw === "1" || raw === "yes") return true;
+      return false;
+    },
+
+    saveReadingScoreFromRecord: function (enabled) {
+      var o = {};
+      o[keys.reading_score_from_record] = enabled ? "true" : "false";
+      mergeAndSave(o);
+    },
+
+    // --------------------------------------------------
+    // 比較用録音のピッチ
+    // --------------------------------------------------
+    loadReadingCompareTakes: function () {
+      var d = loadAll();
+      var raw = d[keys.reading_compare_takes];
+      if (!raw || typeof raw !== "object") return {};
+      return raw;
+    },
+
+    saveReadingCompareTakes: function (takes) {
+      var o = {};
+      o[keys.reading_compare_takes] = takes || {};
+      mergeAndSave(o);
+    },
+
+    // --------------------------------------------------
+    // チャレンジ時に録音するか
+    // --------------------------------------------------
+    loadReadingRecordOnChallenge: function () {
+      var d = loadAll();
+      if (d[keys.reading_record_on_challenge] === undefined) return false;
+      var raw = String(d[keys.reading_record_on_challenge]).trim().toLowerCase();
+      if (raw === "true" || raw === "1" || raw === "yes") return true;
+      return false;
+    },
+
+    saveReadingRecordOnChallenge: function (enabled) {
+      var o = {};
+      o[keys.reading_record_on_challenge] = enabled ? "true" : "false";
       mergeAndSave(o);
     }
   };

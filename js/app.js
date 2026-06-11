@@ -7,25 +7,31 @@
   var SAMPLE_RATE = 44100;                    // マイクのサンプリングレート
   var SMOOTH_COEFF = 0.72;                    // Hz の移動平均係数（小さいほど変化に追従）
   var MAX_SAMPLES_HOLD = 16384;               // 音のデータをためる最大数（解析窓8192に合わせて拡大）
-  var MAX_OCTAVE_HISTORY = 550;               // 折れ線に保持する点数
-  var HP_ALPHA = 0.995;                       // 低い音を取り除く係数
+  var MAX_OCTAVE_HISTORY = 900;               // 安全のために保持する最大点数
+  var GRAPH_HISTORY_MS = VoiceConstants.GRAPH_TIME_WINDOW_SECONDS * 1000;  // グラフに残す時間
+  var HP_ALPHA = 0.992;                       // 低い音を取り除く係数（カフェの低音対策）
+  var LP_ALPHA = 0.8;                         // 高い音を少し丸める係数
   var MEDIAN_WINDOW = 3;                      // 飛び値を消す窓の幅
   var LEARN_FRAMES_COUNT = 38;                // 周囲の音を学習するフレーム数
   var NOISE_GATE_FACTOR = 2.5;                // 雑音しきい値の倍率（小さいほど声を拾いやすい）
+  var AUTO_NOISE_LEARN_RATE = 0.03;           // 無音時に雑音レベルを追いかける速さ
   var AUDIO_BUFFER_SIZE = 2048;               // マイク1回分のサンプル数（小さいほど更新が速い）
 
   // マイク・音声処理 ----------------------------------------------------------------
   var audioContext = null;                    // 音声処理の本体
   var mediaStream = null;                     // マイクからの入力
+  var mediaRecorder = null;                   // 比較用の音声録音
+  var audioRecordChunks = [];                 // 録音データの断片
   var scriptNode = null;                      // 音声データを受け取るノード
   var sourceNode = null;                      // マイク入力のソース
 
   var sampleBuffer = [];                      // 直近の音のデータ
-  var octaveHistory = [];                     // 描画用：基準からのオクターブ差
+  var octaveHistory = [];                     // 描画用：時刻つきのオクターブ履歴
   var recentRawHz = [];                       // 飛び値を消すための直近 Hz
 
   var hpPrevX = 0;                            // 低い音除去用の前回入力
   var hpPrevY = 0;                            // 低い音除去用の前回出力
+  var lpPrevY = 0;                            // 高い音除去用の前回出力
 
   // 基準・目標 --------------------------------------------------------------------
   var hasBaseline = false;                    // 基準の高さを覚えたか
@@ -39,6 +45,7 @@
 
   // 周囲の音を学習 ----------------------------------------------------------------
   var noiseFloorEnergy = 0;                   // 学習した雑音レベル
+  var dynamicNoiseEnergy = 0;                 // 無音時に自動で追いかける雑音レベル
   var learnFramesRemaining = 0;               // 学習残りフレーム数
   var learnEnergySum = 0;                     // 学習中のエネルギー合計
   var learnJustFinished = false;              // 学習が今終わった目印
@@ -61,7 +68,9 @@
   var $chkTargetEnabled = $("#chkTargetEnabled");
   var $lblPitch = $("#lblPitch");
   var $graphHint = $("#graphHint");
+  var $graphHintGame = $("#graphHintGame");
   var canvas = document.getElementById("picPitch");
+  var canvasGame = document.getElementById("picPitchGame");
 
 
   // ======================================================================================
@@ -85,6 +94,35 @@
   // ======================================================================================
   function computeOctaveShift(freq, baseline) {
     return Math.log(Math.max(freq, 1e-6) / Math.max(baseline, 1e-6)) / Math.LN2;
+  }
+
+
+  // ======================================================================================
+  //カフェ向けの軽い音声前処理
+  // ======================================================================================
+  function filterVoiceSample(raw) {
+    var high = HP_ALPHA * (hpPrevY + raw - hpPrevX);
+    hpPrevX = raw;
+    hpPrevY = high;
+
+    lpPrevY = LP_ALPHA * lpPrevY + (1.0 - LP_ALPHA) * high;
+    return lpPrevY;
+  }
+
+
+  // ======================================================================================
+  //無音時の雑音レベルを少しずつ追いかける
+  // ======================================================================================
+  function updateDynamicNoiseEnergy(energy, hasVoice) {
+    if (energy <= 0 || hasVoice) return;
+
+    if (dynamicNoiseEnergy <= 0) {
+      dynamicNoiseEnergy = energy;
+      return;
+    }
+    dynamicNoiseEnergy =
+      dynamicNoiseEnergy * (1.0 - AUTO_NOISE_LEARN_RATE) +
+      energy * AUTO_NOISE_LEARN_RATE;
   }
 
 
@@ -135,6 +173,59 @@
       });
       mediaStream = null;
     }
+    stopAudioRecording(null);
+  }
+
+
+  // ======================================================================================
+  //比較用の音声録音を開始
+  // ======================================================================================
+  function startAudioRecording() {
+    if (!mediaStream || !window.MediaRecorder) return false;
+    try {
+      audioRecordChunks = [];
+      mediaRecorder = new MediaRecorder(mediaStream);
+      mediaRecorder.ondataavailable = function (e) {
+        if (e.data && e.data.size > 0) {
+          audioRecordChunks.push(e.data);
+        }
+      };
+      mediaRecorder.start(250);
+      return true;
+    } catch (e) {
+      mediaRecorder = null;
+      audioRecordChunks = [];
+      return false;
+    }
+  }
+
+
+  // ======================================================================================
+  //比較用の音声録音を停止
+  // ======================================================================================
+  function stopAudioRecording(callback) {
+    if (!mediaRecorder) {
+      if (callback) callback(null);
+      return;
+    }
+    var recorder = mediaRecorder;
+    mediaRecorder = null;
+    recorder.onstop = function () {
+      var blob = null;
+      if (audioRecordChunks.length) {
+        blob = new Blob(audioRecordChunks, {
+          type: recorder.mimeType || "audio/webm"
+        });
+      }
+      audioRecordChunks = [];
+      if (callback) callback(blob);
+    };
+    try {
+      recorder.stop();
+    } catch (e) {
+      audioRecordChunks = [];
+      if (callback) callback(null);
+    }
   }
 
 
@@ -144,33 +235,34 @@
   function processAudioChunk(float32Chunk) {
     var i;
 
-    // 低い音を取り除いてバッファにためる----------------------------------
+    // 低い音・高すぎる音を軽く削ってバッファにためる----------------------
     for (i = 0; i < float32Chunk.length; i++) {
       var raw = float32Chunk[i];
-      var filt = HP_ALPHA * (hpPrevY + raw - hpPrevX);
-      hpPrevX = raw;
-      hpPrevY = filt;
+      var filt = filterVoiceSample(raw);
       sampleBuffer.push(filt);
     }
     while (sampleBuffer.length > MAX_SAMPLES_HOLD) {
       sampleBuffer.shift();
     }
 
+    var currentEnergy = PitchEstimator.computeWindowEnergy(sampleBuffer);
+
     // 周囲の音を学習中ならエネルギーを集める----------------------------------
     if (learnFramesRemaining > 0) {
-      var eFrame = PitchEstimator.computeWindowEnergy(sampleBuffer);
-      if (eFrame > 0) {
-        learnEnergySum += eFrame;
+      if (currentEnergy > 0) {
+        learnEnergySum += currentEnergy;
         learnFramesRemaining -= 1;
         if (learnFramesRemaining === 0) {
           noiseFloorEnergy = learnEnergySum / LEARN_FRAMES_COUNT;
+          dynamicNoiseEnergy = noiseFloorEnergy;
           learnJustFinished = true;
         }
       }
     }
 
     // ピッチを推定してオクターブ履歴に追加----------------------------------
-    var gateThreshold = noiseFloorEnergy * NOISE_GATE_FACTOR;
+    var learnedNoise = Math.max(noiseFloorEnergy, dynamicNoiseEnergy);
+    var gateThreshold = learnedNoise * NOISE_GATE_FACTOR;
     var fRaw = PitchEstimator.estimateFundamental(
       sampleBuffer,
       SAMPLE_RATE,
@@ -181,10 +273,11 @@
     var f = applyMedianFilter(fRaw);
     latestHzRaw = f;
 
-    var oct;
+    var oct = null;
+    var voiced = f > 0;
+    updateDynamicNoiseEnergy(currentEnergy, voiced);
     if (f <= 0) {
       latestHzSmooth = 0;
-      oct = 0;
     } else {
       if (latestHzSmooth <= 0) {
         latestHzSmooth = f;
@@ -199,9 +292,31 @@
       }
     }
 
-    octaveHistory.push(oct);
+    var nowMs = Date.now();
+    octaveHistory.push({
+      timeMs: nowMs,
+      octave: oct,
+      hz: latestHzSmooth,
+      rawHz: f,
+      voiced: voiced
+    });
+
+    var cutoffMs = nowMs - GRAPH_HISTORY_MS;
+    while (octaveHistory.length > 0 && octaveHistory[0].timeMs < cutoffMs) {
+      octaveHistory.shift();
+    }
     while (octaveHistory.length > MAX_OCTAVE_HISTORY) {
       octaveHistory.shift();
+    }
+
+    if (window.VoiceAppBridge && VoiceAppBridge.onPitchSample) {
+      VoiceAppBridge.onPitchSample({
+        timeMs: nowMs,
+        octave: oct,
+        hz: latestHzSmooth,
+        rawHz: f,
+        voiced: voiced
+      });
     }
   }
 
@@ -343,6 +458,9 @@
   // ======================================================================================
   function resizeGraphLayout() {
     PitchGraph.resizeCanvasToDisplay(canvas);
+    if (canvasGame) {
+      PitchGraph.resizeCanvasToDisplay(canvasGame);
+    }
   }
 
 
@@ -350,16 +468,50 @@
   //グラフを描き直す
   // ======================================================================================
   function redrawGraph() {
+    var showTarget = hasTargetOctave && targetEnabled;
+    var gameReference = window.VoiceAppBridge
+      ? VoiceAppBridge.referenceOverlay
+      : null;
+    var gameCompare = window.VoiceAppBridge
+      ? VoiceAppBridge.compareOverlay
+      : null;
+    var compareReplayActive = window.VoiceAppBridge
+      ? !!VoiceAppBridge.compareReplayActive
+      : false;
+    var gameHistory = compareReplayActive ? [] : octaveHistory;
     var hasLine = PitchGraph.draw(
       canvas,
       octaveHistory,
-      hasTargetOctave && targetEnabled,
-      targetOctave
+      showTarget,
+      targetOctave,
+      null,
+      null,
+      false
     );
+
+    var hasGameLine = false;
+    if (canvasGame) {
+      hasGameLine = PitchGraph.draw(
+        canvasGame,
+        gameHistory,
+        showTarget,
+        targetOctave,
+        gameReference,
+        gameCompare,
+        compareReplayActive
+      );
+    }
+
     if (hasLine) {
       $graphHint.addClass("hidden");
     } else {
       $graphHint.removeClass("hidden");
+    }
+
+    if (hasGameLine || gameReference || gameCompare) {
+      $graphHintGame.addClass("hidden");
+    } else {
+      $graphHintGame.removeClass("hidden");
     }
   }
 
@@ -576,7 +728,9 @@
     latestHzRaw = 0;
     hpPrevX = 0;
     hpPrevY = 0;
+    lpPrevY = 0;
     noiseFloorEnergy = 0;
+    dynamicNoiseEnergy = 0;
     learnFramesRemaining = 0;
     learnEnergySum = 0;
 
@@ -705,6 +859,7 @@
       learnFramesRemaining = LEARN_FRAMES_COUNT;
       learnEnergySum = 0;
       noiseFloorEnergy = 0;
+      dynamicNoiseEnergy = 0;
       learnJustFinished = false;
       $btnLearnNoise.prop("disabled", true).text("学習中...");
       $lblSubtitle.text(
@@ -739,4 +894,42 @@
     resizeGraphLayout();
     redrawGraph();
   });
+
+  window.VoiceAppBridge = {
+    hasBaseline: function () {
+      return hasBaseline;
+    },
+    isCaptureActive: function () {
+      return captureActive;
+    },
+    referenceOverlay: null,
+    compareOverlay: null,
+    compareReplayActive: false,
+    setReferenceOverlay: function (overlay) {
+      this.referenceOverlay = overlay || null;
+    },
+    clearReferenceOverlay: function () {
+      this.referenceOverlay = null;
+    },
+    setCompareOverlay: function (overlay) {
+      this.compareOverlay = overlay || null;
+    },
+    clearCompareOverlay: function () {
+      this.compareOverlay = null;
+    },
+    setCompareReplayActive: function (active) {
+      this.compareReplayActive = !!active;
+    },
+    startAudioRecording: function () {
+      return startAudioRecording();
+    },
+    stopAudioRecording: function (callback) {
+      stopAudioRecording(callback);
+    },
+    refreshGraph: function () {
+      resizeGraphLayout();
+      redrawGraph();
+    },
+    onPitchSample: null
+  };
 })(jQuery);

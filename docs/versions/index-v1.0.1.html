@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>voice_manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/app.css" rel="stylesheet">
+</head>
+<body class="app-body">
+  <div class="container-fluid app-root">
+    <header class="app-brand">
+      <div>
+        <h1 class="app-brand-title">voice_manager</h1>
+        <p class="app-brand-sub">声のピッチを見ながら、楽しく練習しよう</p>
+      </div>
+    </header>
+
+    <ul class="nav nav-tabs app-mode-tabs mb-2" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button type="button" class="nav-link active app-touch-btn" id="tabMonitor" role="tab">ピッチ確認</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button type="button" class="nav-link app-touch-btn" id="tabGame" role="tab">朗読チャレンジ</button>
+      </li>
+    </ul>
+
+    <section id="monitorPanel">
+    <header class="app-header row align-items-start g-2 mb-2">
+      <div class="col-12 col-md">
+        <p id="lblSubtitle" class="text-muted small mb-0">
+          <span class="lbl-subtitle-long">ピッチ推移（縦：基準からのオクターブ／横：時間）</span>
+          <span class="lbl-subtitle-short">ピッチ推移（oct × 時間）</span>
+        </p>
+      </div>
+      <div class="col-12 col-md-auto app-actions d-grid d-sm-flex gap-2">
+        <button type="button" id="btnSetBaseline" class="btn btn-outline-primary btn-sm app-touch-btn app-action-tooltip"
+          data-bs-title="現在拾っている声のhzに基準hzを合わせます"
+          title="現在拾っている声のhzに基準hzを合わせます">
+          今の声で自動取得
+        </button>
+        <button type="button" id="btnLearnNoise" class="btn btn-outline-secondary btn-sm app-touch-btn app-action-tooltip"
+          data-bs-title="現在拾っている雑音を学習しノイズを除去します"
+          title="現在拾っている雑音を学習しノイズを除去します">
+          周囲の音を学習
+        </button>
+      </div>
+    </header>
+
+    <section class="app-controls">
+      <div class="row g-2 align-items-center mb-2 app-field-row">
+        <div class="col-12 col-sm-auto">
+          <label for="cboDevice" class="col-form-label col-form-label-sm mb-0">マイク：</label>
+        </div>
+        <div class="col-12 col-sm">
+          <select id="cboDevice" class="form-select form-select-sm app-touch-input"></select>
+        </div>
+      </div>
+
+      <div class="row g-2 align-items-center mb-2 app-field-row">
+        <div class="col-12 col-sm-auto">
+          <label for="txtBaselineHz" class="col-form-label col-form-label-sm mb-0">基準（Hz）：</label>
+        </div>
+        <div class="col-12 col-sm">
+          <input type="text" id="txtBaselineHz" class="form-control form-control-sm app-touch-input" placeholder="例 220.5" inputmode="decimal">
+        </div>
+      </div>
+
+      <div class="row g-2 align-items-center mb-2 app-field-row app-target-row">
+        <div class="col-12 col-sm-auto">
+          <label for="txtTargetOctave" class="col-form-label col-form-label-sm mb-0">目標（オクターブ）：</label>
+        </div>
+        <div class="col-auto">
+          <input type="checkbox" id="chkTargetEnabled" class="form-check-input app-touch-check" checked>
+        </div>
+        <div class="col">
+          <input type="text" id="txtTargetOctave" class="form-control form-control-sm app-touch-input" placeholder="例 1.5" inputmode="decimal">
+        </div>
+      </div>
+    </section>
+
+    <p id="lblPitch" class="app-pitch mb-2">--- Hz　基準ピッチは未設定</p>
+
+    <section class="app-graph graph-wrap app-card mb-2">
+      <canvas id="picPitch"></canvas>
+      <p id="graphHint" class="graph-hint text-muted small">音声を入力するとグラフが表示されます。</p>
+    </section>
+    </section>
+
+    <section id="gamePanel" class="d-none">
+      <ul class="nav nav-tabs game-inner-tabs mb-2" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button type="button" class="nav-link active app-touch-btn" id="tabGamePlay" role="tab">チャレンジ</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button type="button" class="nav-link app-touch-btn" id="tabGamePrompts" role="tab">お題の追加・削除</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button type="button" class="nav-link app-touch-btn" id="tabGameScores" role="tab">点数記録</button>
+        </li>
+      </ul>
+
+      <section id="gamePlayPanel">
+        <header class="d-flex flex-wrap align-items-center gap-2 mb-2">
+          <span id="gameSessionBadge" class="game-session-badge game-session-idle">待機中</span>
+          <p class="text-muted small mb-0 flex-grow-1">お題を読んで、抑揚・リズム・安定さを採点します（約25秒）</p>
+        </header>
+
+        <div class="d-flex flex-wrap align-items-start gap-2 mb-2">
+          <div id="lblPromptText" class="game-prompt-display app-card app-surface-soft p-3 flex-grow-1"></div>
+          <button type="button" id="btnRandomPrompt" class="btn btn-outline-secondary btn-sm app-touch-btn flex-shrink-0">別のお題</button>
+        </div>
+        <p id="lblBestScore" class="text-muted small mb-1">ベスト：—</p>
+        <p id="lblRecordStatus" class="text-muted small mb-2">模範：未記録</p>
+
+        <section class="app-graph graph-wrap app-card mb-2">
+          <canvas id="picPitchGame"></canvas>
+          <p id="graphHintGame" class="graph-hint text-muted small">音声を入力するとグラフが表示されます。</p>
+        </section>
+        <p id="lblRefLegend" class="game-ref-legend small text-muted mb-2 d-none">薄い緑の点線：記録した模範</p>
+
+        <div class="row g-2 align-items-center mb-2 app-field-row">
+          <div class="col-auto">
+            <input type="checkbox" id="chkScoreFromRecord" class="form-check-input app-touch-check">
+          </div>
+          <div class="col">
+            <label for="chkScoreFromRecord" class="form-check-label small mb-0">模範で採点する（模範波形を記録したお題のみ）</label>
+          </div>
+        </div>
+
+        <div class="row g-2 align-items-center mb-2 app-field-row">
+          <div class="col-auto">
+            <input type="checkbox" id="chkRecordChallenge" class="form-check-input app-touch-check">
+          </div>
+          <div class="col">
+            <label for="chkRecordChallenge" class="form-check-label small mb-0">チャレンジを録音する（あとから模範と波形比較）</label>
+          </div>
+        </div>
+
+        <div class="d-grid d-sm-flex flex-wrap gap-2 mb-2">
+          <button type="button" id="btnStartGame" class="btn btn-primary btn-sm app-touch-btn">チャレンジ開始</button>
+          <button type="button" id="btnStopGame" class="btn btn-outline-secondary btn-sm app-touch-btn" disabled>途中で終了</button>
+          <button type="button" id="btnRecordReference" class="btn btn-outline-success btn-sm app-touch-btn">模範波形を記録</button>
+          <button type="button" id="btnDeleteReference" class="btn btn-outline-danger btn-sm app-touch-btn" disabled>模範を削除</button>
+        </div>
+
+        <p id="lblGameStatus" class="game-status small mb-1"></p>
+        <p id="lblGameTimer" class="game-timer fw-semibold mb-1"></p>
+
+        <p id="lblCompareStatus" class="text-muted small mb-1">録音：なし</p>
+        <div class="d-grid d-sm-flex flex-wrap gap-2 mb-2">
+          <button type="button" id="btnComparePlay" class="btn btn-outline-secondary btn-sm app-touch-btn" disabled>再生して比較</button>
+          <button type="button" id="btnCompareStopPlay" class="btn btn-outline-secondary btn-sm app-touch-btn" disabled>再生停止</button>
+          <button type="button" id="btnCompareDelete" class="btn btn-outline-danger btn-sm app-touch-btn" disabled>録音を削除</button>
+        </div>
+
+        <div id="gameResult" class="game-result app-card p-3 mb-3 d-none">
+          <p class="small text-muted mb-1">今回の結果</p>
+          <div class="d-flex align-items-end gap-3 mb-1">
+            <span id="lblGameRank" class="game-rank-badge">—</span>
+            <span id="lblGameTotal" class="game-total-score">—</span>
+          </div>
+          <p id="lblGameBreakdown" class="small text-muted mb-0"></p>
+        </div>
+      </section>
+
+      <section id="gamePromptsPanel" class="d-none">
+        <div class="game-prompt-manage app-card p-3">
+          <p class="small text-muted mb-2">チャレンジで出るお題を追加・削除できます。表示はランダムです。</p>
+          <div id="promptList" class="game-prompt-list mb-2"></div>
+          <div class="d-flex flex-column flex-sm-row gap-2">
+            <input type="text" id="txtNewPrompt" class="form-control form-control-sm app-touch-input" placeholder="新しいお題を入力（例：こんにちは、調子はどうですか。）" maxlength="120">
+            <button type="button" id="btnAddPrompt" class="btn btn-outline-primary btn-sm app-touch-btn flex-shrink-0">追加</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="gameScoresPanel" class="d-none">
+        <div class="game-score-history app-card p-3">
+          <p class="small text-muted mb-2">チャレンジが終わると、点数はこのブラウザに自動で保存されます（同じ PC・同じブラウザで開いたときだけ残ります）。</p>
+          <div id="scoreHistoryList" class="game-score-history-list mb-2"></div>
+          <p id="lblScoreHistoryEmpty" class="small text-muted mb-2 d-none">まだ点数記録がありません。</p>
+          <div class="d-grid d-sm-flex flex-wrap gap-2">
+            <button type="button" id="btnClearScoreHistory" class="btn btn-outline-danger btn-sm app-touch-btn">記録をすべて削除</button>
+          </div>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/voice-constants.js"></script>
+  <script src="js/pitch.js"></script>
+  <script src="js/trial-limit.js"></script>
+  <script src="js/graph.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/game-prompts.js"></script>
+  <script src="js/game-score.js"></script>
+  <script src="js/game-score-history.js"></script>
+  <script src="js/game-reference.js"></script>
+  <script src="js/game-compare-store.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

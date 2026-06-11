@@ -4,6 +4,7 @@ var VoiceConstants = (function () {
   var OCTAVE_PLOT_MIN = -1.5;                 // 縦軸の下限（オクターブ）
   var OCTAVE_PLOT_MAX = 3.5;                  // 縦軸の上限（オクターブ）
   var OCTAVE_TICK_STEP = 0.5;                 // 目盛りの間隔
+  var GRAPH_TIME_WINDOW_SECONDS = 12;         // グラフに表示する直近秒数
 
 
   // ======================================================================================
@@ -24,6 +25,7 @@ var VoiceConstants = (function () {
     OCTAVE_PLOT_MIN: OCTAVE_PLOT_MIN,
     OCTAVE_PLOT_MAX: OCTAVE_PLOT_MAX,
     OCTAVE_TICK_STEP: OCTAVE_TICK_STEP,
+    GRAPH_TIME_WINDOW_SECONDS: GRAPH_TIME_WINDOW_SECONDS,
     getOctaveTicks: buildOctaveTicks
   };
 })();
